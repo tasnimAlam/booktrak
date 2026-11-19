@@ -11,7 +11,7 @@ A small app to browse books and filter them by author, genre and page count.
 You need Docker.
 
 ```sh
-cp .env.example .env    # then set a real POSTGRES_PASSWORD
+cp .env.example .env    # then set POSTGRES_PASSWORD and JWT_SECRET (openssl rand -hex 32)
 docker compose up -d --build
 ```
 
@@ -26,7 +26,7 @@ Needs Node 24+.
 ```sh
 npm run install:all
 docker compose up -d db
-DATABASE_URL=postgres://postgres:<password>@localhost:5432/bookshelf npm run dev:server
+DATABASE_URL=postgres://postgres:<password>@localhost:5432/bookshelf JWT_SECRET=<secret> npm run dev:server
 npm run dev:web         # in a second terminal
 ```
 
@@ -34,17 +34,28 @@ Open http://localhost:5173. Vite sends `/api` calls to the server on port 3000.
 
 ## API
 
-| Method | Path | What it does |
-|---|---|---|
-| GET | `/api/books` | List books. Optional filters: `author`, `genre` (repeat for more), `minPages`, `maxPages` |
-| GET | `/api/books/facets` | Authors, genres, counts and page range for the filter panel |
-| GET | `/health` | `{"ok":true}` when the server can reach the database |
+| Method | Path | Login needed | What it does |
+|---|---|---|---|
+| POST | `/api/auth/signup` | no | Create an account (`name`, `email`, `password` 8+ chars). Returns a token |
+| POST | `/api/auth/login` | no | Log in (`email`, `password`). Returns a token |
+| GET | `/api/auth/me` | yes | The logged-in user |
+| GET | `/api/books` | yes | List books. Optional filters: `author`, `genre` (repeat for more), `minPages`, `maxPages` |
+| GET | `/api/books/facets` | yes | Authors, genres, counts and page range for the filter panel |
+| GET | `/health` | no | `{"ok":true}` when the server can reach the database |
+
+Send the token as `Authorization: Bearer <token>`. It lasts 1 hour.
 
 Example:
 
 ```sh
-curl "http://localhost:3000/api/books?genre=fantasy&minPages=300"
+TOKEN=$(curl -s -X POST http://localhost:3000/api/auth/login \
+  -H 'content-type: application/json' \
+  -d '{"email":"you@example.com","password":"your-password"}' | jq -r .token)
+
+curl "http://localhost:3000/api/books?genre=fantasy" -H "Authorization: Bearer $TOKEN"
 ```
+
+The seed users in `db/init/` have placeholder passwords and can't log in. Sign up to make a real account.
 
 ## Scripts
 

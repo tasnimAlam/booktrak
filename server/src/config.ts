@@ -4,6 +4,7 @@ export interface Config {
   host: string;
   port: number;
   logLevel: string;
+  jwtSecret: string;
   staticDir?: string;
 }
 
@@ -15,8 +16,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   if (!Number.isInteger(port) || port < 1 || port > 65535)
     throw new Error(`Invalid PORT: ${env.PORT}`);
 
+  // Anyone with the secret can forge tokens for any user, so require a long random one.
+  const jwtSecret = env.JWT_SECRET;
+  if (!jwtSecret || jwtSecret.length < 32)
+    throw new Error("JWT_SECRET must be set and at least 32 characters");
+
   return {
     databaseUrl,
+    jwtSecret,
     host: env.HOST ?? "0.0.0.0",
     port,
     logLevel: env.LOG_LEVEL ?? "info",

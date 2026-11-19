@@ -28,6 +28,9 @@ const countList = {
 } as const;
 
 const books: FastifyPluginAsync = async (app) => {
+  // Every route in this plugin needs a valid token.
+  app.addHook("onRequest", app.authenticate);
+
   // GET /api/books?author=A&author=B&genre=fantasy&minPages=200&maxPages=400
   // OR within authors/genres, AND across groups. Books with no genres never match a genre filter.
   app.get<{ Querystring: BooksQuery }>(

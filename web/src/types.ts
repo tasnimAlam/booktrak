@@ -17,6 +17,13 @@ export interface Filters {
   maxPages: number | null;
 }
 
+export interface User {
+  id: number;
+  email: string;
+  name: string;
+  role: string;
+}
+
 export interface NameCount {
   name: string;
   count: number;

@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { fetchBooks, fetchFacets } from "../api.ts";
+import { fetchBooks, fetchFacets, UnauthorizedError } from "../api.ts";
 import {
   countActiveFilters,
   emptyFilters,
   type Book,
   type Facets,
   type Filters,
+  type User,
 } from "../types.ts";
 import ActiveFilters from "./ActiveFilters.tsx";
 import BookCard from "./BookCard.tsx";
@@ -13,7 +14,12 @@ import FilterDrawer from "./FilterDrawer.tsx";
 import { SlidersIcon } from "./Icons.tsx";
 import { btnDark, btnOutline } from "./ui.ts";
 
-export default function BooksPage() {
+interface Props {
+  user: User;
+  onLogout: (message?: string) => void;
+}
+
+export default function BooksPage({ user, onLogout }: Props) {
   const [books, setBooks] = useState<Book[] | null>(null);
   const [facets, setFacets] = useState<Facets | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -23,10 +29,19 @@ export default function BooksPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const filterBtnRef = useRef<HTMLButtonElement>(null);
 
+  // Expired token: back to login with a message. Anything else: show the error.
+  const fail = useCallback(
+    (e: unknown) =>
+      e instanceof UnauthorizedError
+        ? onLogout(e.message)
+        : setError(String(e)),
+    [onLogout],
+  );
+
   // Drawer options and the total count: whole table, loaded once.
   useEffect(() => {
-    fetchFacets().then(setFacets, (e: unknown) => setError(String(e)));
-  }, []);
+    fetchFacets().then(setFacets, fail);
+  }, [fail]);
 
   // Server filters on every change. Aborting the previous request means a slow, stale
   // response (e.g. while typing in Min/Max) can never overwrite a newer one.
@@ -38,11 +53,11 @@ export default function BooksPage() {
         setError(null);
       },
       (e: unknown) => {
-        if (!ctrl.signal.aborted) setError(String(e));
+        if (!ctrl.signal.aborted) fail(e);
       },
     );
     return () => ctrl.abort();
-  }, [filters]);
+  }, [filters, fail]);
 
   const total = facets?.total ?? books?.length ?? 0;
   const shown = books?.length ?? 0;
@@ -75,26 +90,36 @@ export default function BooksPage() {
                   : `Showing ${shown} of ${total} books`}
               </p>
             </div>
-            <button
-              ref={filterBtnRef}
-              type="button"
-              className={btnDark}
-              onClick={() => {
-                setDraft(filters); // start from what's applied; a closed-without-Apply draft is discarded
-                setDrawerOpen(true);
-              }}
-            >
-              <SlidersIcon />
-              Filter
-              {activeCount > 0 && (
-                <span
-                  className="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-[11px] bg-white px-[7px] text-xs font-semibold text-ink"
-                  aria-label={`${activeCount} active`}
-                >
-                  {activeCount}
-                </span>
-              )}
-            </button>
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-sm text-muted">{user.name}</span>
+              <button
+                type="button"
+                className={btnOutline}
+                onClick={() => onLogout()}
+              >
+                Log out
+              </button>
+              <button
+                ref={filterBtnRef}
+                type="button"
+                className={btnDark}
+                onClick={() => {
+                  setDraft(filters); // start from what's applied; a closed-without-Apply draft is discarded
+                  setDrawerOpen(true);
+                }}
+              >
+                <SlidersIcon />
+                Filter
+                {activeCount > 0 && (
+                  <span
+                    className="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-[11px] bg-white px-[7px] text-xs font-semibold text-ink"
+                    aria-label={`${activeCount} active`}
+                  >
+                    {activeCount}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
         </header>
 
