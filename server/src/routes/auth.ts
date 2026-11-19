@@ -37,7 +37,8 @@ const authResponse = {
 const DUMMY_HASH = await hashPassword("timing-equalizer");
 
 const auth: FastifyPluginAsync = async (app) => {
-  const tokenFor = (u: UserRow) => app.jwt.sign({ sub: String(u.id), role: u.role });
+  const tokenFor = (u: UserRow) =>
+    app.jwt.sign({ sub: String(u.id), role: u.role });
 
   app.post<{ Body: SignupBody }>(
     "/signup",
@@ -47,7 +48,11 @@ const auth: FastifyPluginAsync = async (app) => {
           type: "object",
           required: ["email", "name", "password"],
           additionalProperties: false,
-          properties: { email, password, name: { type: "string", minLength: 1, maxLength: 100 } },
+          properties: {
+            email,
+            password,
+            name: { type: "string", minLength: 1, maxLength: 100 },
+          },
         },
         response: { 201: authResponse },
       },
@@ -93,9 +98,13 @@ const auth: FastifyPluginAsync = async (app) => {
         [req.body.email.trim()],
       );
       const row = rows[0];
-      const ok = await verifyPassword(req.body.password, row?.password_hash ?? DUMMY_HASH);
+      const ok = await verifyPassword(
+        req.body.password,
+        row?.password_hash ?? DUMMY_HASH,
+      );
       // Same message for unknown email and wrong password, so it can't be used to find accounts.
-      if (!row || !ok) return reply.code(401).send({ error: "Invalid email or password" });
+      if (!row || !ok)
+        return reply.code(401).send({ error: "Invalid email or password" });
 
       const { password_hash: _, ...user } = row;
       return { token: tokenFor(user), user };
