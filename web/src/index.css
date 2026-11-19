@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+/* Design tokens from the spec. Each becomes utilities, e.g. --color-muted gives text-muted / bg-muted. */
+@theme {
+  --font-sans: Inter, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+
+  --color-canvas: #f6f6f3;
+  --color-ink: #18181b;
+  --color-ink-hover: #2e2e33;
+  --color-muted: #5b5b63;
+  --color-body: #3a3a40;
+  --color-line: #e3e3de;
+  --color-line-soft: #edede9;
+  --color-line-strong: #cfcfc8;
+  --color-tag: #f0f0ec;
+  --color-brand: #2b50d8;
+  --color-chip: #eef2ff;
+  --color-chip-line: #c9d3f5;
+  --color-chip-ink: #1f3ba6;
+}
+
+@layer base {
+  body {
+    @apply bg-canvas text-ink font-sans antialiased;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand;
+  }
+}

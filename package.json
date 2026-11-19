@@ -1,0 +1,16 @@
+{
+  "name": "booktrak",
+  "version": "1.0.0",
+  "private": true,
+  "description": "track book reading progress",
+  "license": "MIT",
+  "author": "tasnimAlam",
+  "type": "module",
+  "scripts": {
+    "install:all": "npm ci --prefix server && npm ci --prefix web",
+    "dev:web": "npm run dev --prefix web",
+    "dev:server": "npm run dev --prefix server",
+    "test": "npm test --prefix server && npm test --prefix web",
+    "check": "npm run typecheck --prefix server && npm run lint --prefix web && npm run build --prefix web"
+  }
+}
