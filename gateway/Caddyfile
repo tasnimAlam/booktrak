@@ -1,0 +1,26 @@
+# The only public entry point. Routes /api by path to each service, serves the built web app for the rest.
+# Plain HTTP: a site address with only a port turns off Caddy's automatic HTTPS.
+:3000 {
+	@auth path /api/auth /api/auth/*
+	handle @auth {
+		reverse_proxy auth:3000
+	}
+
+	@books path /api/books /api/books/*
+	handle @books {
+		reverse_proxy books:3000
+	}
+
+	handle {
+		root * /srv
+		# Vite puts a content hash in asset file names, so they can be cached forever.
+		@assets path /assets/*
+		header @assets Cache-Control "public, max-age=31536000, immutable"
+		# index.html must be revalidated so users pick up new asset names after a deploy.
+		@notAssets not path /assets/*
+		header @notAssets Cache-Control "no-cache"
+		# Unknown paths get index.html so client-side routes still load.
+		try_files {path} /index.html
+		file_server
+	}
+}

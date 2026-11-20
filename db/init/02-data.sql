@@ -1,4 +1,4 @@
-INSERT INTO users (email, name, password_hash)
+INSERT INTO auth.users (email, name, password_hash)
 VALUES ('ana@example.com', 'Ana', 'not-a-real-hash'),
        ('ben@example.com', 'Ben', 'not-a-real-hash'),
        ('chloe@example.com', 'Chloe', 'not-a-real-hash'),
@@ -6,7 +6,7 @@ VALUES ('ana@example.com', 'Ana', 'not-a-real-hash'),
        ('emma@example.com', 'Emma', 'not-a-real-hash'),
        ('farhan@example.com', 'Farhan', 'not-a-real-hash');
 
-INSERT INTO books (title, author, page_count, published_on, metadata) VALUES
+INSERT INTO books.books (title, author, page_count, published_on, metadata) VALUES
   ('A Wizard of Earthsea', 'Ursula K. Le Guin', 205, '1968-11-01',
    '{"language": "en", "genres": ["fantasy"]}'),
   ('Dune', 'Frank Herbert', 612, '1965-08-01',
@@ -52,11 +52,11 @@ INSERT INTO books (title, author, page_count, published_on, metadata) VALUES
   ('Piranesi', 'Susanna Clarke', 272, '2020-09-15',
    '{"language": "en", "genres": ["fantasy", "mystery"]}');
 
-INSERT INTO user_books (user_id, book_id, status, current_page, started_on)
+INSERT INTO books.user_books (user_id, book_id, status, current_page, started_on)
 VALUES (1, 1, 'reading', 40, current_date - 3),
        (1, 2, 'want_to_read', 0, NULL);
 
-INSERT INTO user_books (user_id, book_id, status, rating, current_page, started_on, finished_on)
+INSERT INTO books.user_books (user_id, book_id, status, rating, current_page, started_on, finished_on)
 VALUES (1, 15, 'finished',     5,    224, current_date - 20,  current_date - 14),
        (2,  4, 'finished',     5,    310, current_date - 40,  current_date - 25),
        (2,  9, 'reading',      NULL, 180, current_date - 10,  NULL),

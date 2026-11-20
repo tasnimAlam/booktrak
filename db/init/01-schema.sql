@@ -1,4 +1,9 @@
-CREATE TABLE users (
+-- One schema per service. Each service gets its own DB role (03-roles.sh)
+-- that can only see its own schema, so services can't read each other's tables.
+CREATE SCHEMA auth;
+CREATE SCHEMA books;
+
+CREATE TABLE auth.users (
   id            bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   email         text NOT NULL,
   name          text NOT NULL,
@@ -9,9 +14,9 @@ CREATE TABLE users (
 );
 
 -- Unique email, ignoring upper/lower case
-CREATE UNIQUE INDEX users_email_key ON users (lower(email));
+CREATE UNIQUE INDEX users_email_key ON auth.users (lower(email));
 
-CREATE TABLE books (
+CREATE TABLE books.books (
   id           bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   title        text NOT NULL,
   author       text NOT NULL,
@@ -22,9 +27,10 @@ CREATE TABLE books (
   metadata     jsonb NOT NULL DEFAULT '{}'
 );
 
-CREATE TABLE user_books (
-  user_id      bigint NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-  book_id      bigint NOT NULL REFERENCES books (id) ON DELETE RESTRICT,
+CREATE TABLE books.user_books (
+  -- No FK to auth.users: services don't link across schemas. The id comes from the JWT.
+  user_id      bigint NOT NULL,
+  book_id      bigint NOT NULL REFERENCES books.books (id) ON DELETE RESTRICT,
   status       text NOT NULL DEFAULT 'want_to_read'
                CHECK (status IN ('want_to_read', 'reading', 'finished')),
   rating       smallint CHECK (rating BETWEEN 1 AND 5),

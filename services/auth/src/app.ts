@@ -2,21 +2,16 @@ import Fastify, { type FastifyError, type FastifyServerOptions } from "fastify";
 import authPlugin from "./plugins/auth.ts";
 import dbPlugin, { type Db } from "./plugins/db.ts";
 import authRoutes from "./routes/auth.ts";
-import booksRoutes from "./routes/books.ts";
 import healthRoutes from "./routes/health.ts";
-import staticFiles from "./plugins/static.ts";
-import { bookSchema } from "./schemas/book.ts";
 
 export type AppOptions = FastifyServerOptions & {
   jwtSecret: string;
-  staticDir?: string;
 };
 
 // Factory without listen(): tests call app.inject() on it, server.ts adds the network side.
-export function buildApp(db: Db, { jwtSecret, staticDir, ...opts }: AppOptions) {
+export function buildApp(db: Db, { jwtSecret, ...opts }: AppOptions) {
   const app = Fastify(opts);
 
-  app.addSchema(bookSchema);
   app.register(dbPlugin, { db });
   app.register(authPlugin, { secret: jwtSecret });
 
@@ -32,9 +27,6 @@ export function buildApp(db: Db, { jwtSecret, staticDir, ...opts }: AppOptions) 
 
   app.register(healthRoutes);
   app.register(authRoutes, { prefix: "/api/auth" });
-  app.register(booksRoutes, { prefix: "/api/books" });
-  // Unset in local dev, where Vite serves the web app.
-  if (staticDir) app.register(staticFiles, { root: staticDir });
 
   return app;
 }

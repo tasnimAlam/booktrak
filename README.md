@@ -3,15 +3,30 @@
 A small app to browse books and filter them by author, genre and page count.
 
 - **web/** – React + TypeScript + Tailwind page (built with Vite)
-- **server/** – Fastify API that reads books from Postgres
-- **db/init/** – SQL that creates the tables and sample data
+- **services/auth/** – Fastify service: signup, login, JWT tokens
+- **services/books/** – Fastify service: books and filters
+- **gateway/** – Caddy config: the one public entry point
+- **db/init/** – SQL that creates the tables, sample data and one DB user per service
+
+## How it fits together
+
+```
+browser ──► gateway (Caddy, :3000)
+              /api/auth/*   ──► auth   ── Postgres schema "auth"  (users)
+              /api/books/*  ──► books  ── Postgres schema "books" (books, user_books)
+              everything else ──► built web app
+```
+
+- Each service is its own small app with its own `package.json`, tests and Docker target.
+- Services never call each other. Auth signs a JWT; books only checks it with the same `JWT_SECRET`.
+- Both use one Postgres, but each logs in as its own user that can only see its own schema.
 
 ## Run it
 
 You need Docker.
 
 ```sh
-cp .env.example .env    # then set POSTGRES_PASSWORD and JWT_SECRET (openssl rand -hex 32)
+cp .env.example .env    # then set the passwords and JWT_SECRET (openssl rand -hex 32)
 docker compose up -d --build
 ```
 
@@ -26,11 +41,13 @@ Needs Node 24+.
 ```sh
 npm run install:all
 docker compose up -d db
-DATABASE_URL=postgres://postgres:<password>@localhost:5432/bookshelf JWT_SECRET=<secret> npm run dev:server
-npm run dev:web         # in a second terminal
+set -x JWT_SECRET <secret>    # fish; same value for both services
+DATABASE_URL=postgres://auth_svc:<auth-password>@localhost:5432/bookshelf npm run dev:auth     # port 3001
+DATABASE_URL=postgres://books_svc:<books-password>@localhost:5432/bookshelf npm run dev:books  # port 3002
+npm run dev:web
 ```
 
-Open http://localhost:5173. Vite sends `/api` calls to the server on port 3000.
+Run each in its own terminal. Open http://localhost:5173. Vite sends `/api/auth` to port 3001 and `/api/books` to port 3002, like the gateway does.
 
 ## API
 
@@ -41,7 +58,7 @@ Open http://localhost:5173. Vite sends `/api` calls to the server on port 3000.
 | GET | `/api/auth/me` | yes | The logged-in user |
 | GET | `/api/books` | yes | List books. Optional filters: `author`, `genre` (repeat for more), `minPages`, `maxPages` |
 | GET | `/api/books/facets` | yes | Authors, genres, counts and page range for the filter panel |
-| GET | `/health` | no | `{"ok":true}` when the server can reach the database |
+| GET | `/health` | no | Per service, inside the compose network only: `{"ok":true}` when it can reach the database |
 
 Send the token as `Authorization: Bearer <token>`. It lasts 1 hour.
 

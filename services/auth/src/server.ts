@@ -10,7 +10,6 @@ const pool = new pg.Pool({ connectionString: config.databaseUrl });
 const app = buildApp(pool, {
   logger: { level: config.logLevel },
   jwtSecret: config.jwtSecret,
-  staticDir: config.staticDir,
 });
 
 // An idle client losing its connection emits 'error'; unhandled, it would crash the process.
