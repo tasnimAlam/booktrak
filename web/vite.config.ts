@@ -6,10 +6,7 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
-    // Same-origin /api avoids CORS. Plays the gateway's role in dev: one rule per service.
-    proxy: {
-      '/api/auth': 'http://localhost:3001',
-      '/api/books': 'http://localhost:3002',
-    },
+    // Same-origin /api avoids CORS. API_URL is set by compose; default fits running Vite on the host.
+    proxy: { '/api': process.env.API_URL ?? 'http://localhost:3000' },
   },
 })

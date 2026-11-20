@@ -5,6 +5,7 @@ export interface Config {
   port: number;
   logLevel: string;
   jwtSecret: string;
+  staticDir?: string;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -26,5 +27,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     host: env.HOST ?? "0.0.0.0",
     port,
     logLevel: env.LOG_LEVEL ?? "info",
+    staticDir: env.STATIC_DIR || undefined,
   };
 }

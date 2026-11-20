@@ -7,11 +7,10 @@
   "author": "tasnimAlam",
   "type": "module",
   "scripts": {
-    "install:all": "npm ci --prefix services/auth && npm ci --prefix services/books && npm ci --prefix web",
+    "install:all": "npm ci --prefix server && npm ci --prefix web",
     "dev:web": "npm run dev --prefix web",
-    "dev:auth": "PORT=3001 npm run dev --prefix services/auth",
-    "dev:books": "PORT=3002 npm run dev --prefix services/books",
-    "test": "npm test --prefix services/auth && npm test --prefix services/books && npm test --prefix web",
-    "check": "npm run typecheck --prefix services/auth && npm run typecheck --prefix services/books && npm run lint --prefix web && npm run build --prefix web"
+    "dev:server": "npm run dev --prefix server",
+    "test": "npm test --prefix server && npm test --prefix web",
+    "check": "npm run typecheck --prefix server && npm run lint --prefix web && npm run build --prefix web"
   }
 }
